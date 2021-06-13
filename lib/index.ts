@@ -73,7 +73,8 @@ function applySinglePatch( root: NodeType, operation: Operation )
 				parent.add( toAstValue( operation.value ) );
 			else if ( isNaN( index ) )
 				throw RangeError(
-					`Can't add index ${last} to array at ${pathTo( -1 )}`
+					`Can't ${operation.op} index ${last} ` +
+					`to array at ${pathTo( -1 )}`
 				);
 			else
 				parent.items[ index ] = toAstValue( operation.value );
@@ -86,8 +87,8 @@ function applySinglePatch( root: NodeType, operation: Operation )
 			// Object
 			if ( !parent.has( last ) )
 				throw new ReferenceError(
-					`Can't replace ${operation.path} since it doesn't ` +
-					`already exist`
+					`Can't ${operation.op} ${operation.path} ` +
+					`since it doesn't already exist`
 				);
 			parent.delete( last );
 			parent.add( new Pair( last, toAstValue( operation.value ) ) );
@@ -98,7 +99,8 @@ function applySinglePatch( root: NodeType, operation: Operation )
 			const index = parseSafeIndex( last, parent.items.length - 1 );
 			if ( isNaN( index ) )
 				throw RangeError(
-					`Can't add index ${last} to array at ${pathTo( -1 )}`
+					`Can't ${operation.op} index ${last} ` +
+					`to array at ${pathTo( -1 )}`
 				);
 			parent.items[ index ] = toAstValue( operation.value );
 		}
@@ -116,7 +118,8 @@ function applySinglePatch( root: NodeType, operation: Operation )
 			const index = parseSafeIndex( last, parent.items.length - 1 );
 			if ( isNaN( index ) )
 				throw RangeError(
-					`Can't add index ${last} to array at ${pathTo( -1 )}`
+					`Can't ${operation.op} index ${last} ` +
+					`to array at ${pathTo( -1 )}`
 				);
 			parent.items.splice( index, 1 );
 		}
@@ -134,7 +137,7 @@ function applySinglePatch( root: NodeType, operation: Operation )
 				const node = parentFrom.get( lastFrom, true );
 				if ( lastFrom === undefined )
 					throw ReferenceError(
-						`Can't add index ${last} to array at ` +
+						`Can't ${operation.op} index ${last} to array at ` +
 						pathToFrom( -1 )
 					);
 				if ( operation.op === 'move' )
@@ -148,8 +151,8 @@ function applySinglePatch( root: NodeType, operation: Operation )
 					parseSafeIndex( lastFrom, parentFrom.items.length - 1 );
 				if ( isNaN( index ) )
 					throw RangeError(
-						`Can't add index ${lastFrom} to array at ` +
-						pathToFrom( -1 )
+						`Can't ${operation.op} index ${lastFrom} ` +
+						`to array at ${pathToFrom( -1 )}`
 					);
 
 				const node = parentFrom.get( index, true );
@@ -178,7 +181,7 @@ function applySinglePatch( root: NodeType, operation: Operation )
 			const index = parseSafeIndex( last, parent.items.length );
 			if ( isNaN( index ) )
 				throw RangeError(
-					`Can't add index ${last} to array at ` +
+					`Can't ${operation.op} index ${last} to array at ` +
 					pathTo( -1 )
 				);
 			else if ( index === parent.items.length )
@@ -205,13 +208,29 @@ function applySinglePatch( root: NodeType, operation: Operation )
 
 export function yamlPatch( yaml: string, rfc6902: Array< Operation > ): string
 {
-	const doc = parseDocument( yaml );
-
-	rfc6902.forEach( operation =>
-	{
-		applySinglePatch( doc.contents, operation );
+	const doc = parseDocument( yaml, {
+		keepCstNodes: true,
+		prettyErrors: true,
+		simpleKeys: true,
 	} );
 
+	rfc6902.forEach( ( operation, index ) =>
+	{
+		try
+		{
+			applySinglePatch( doc.contents, operation );
+		}
+		catch ( err )
+		{
+			const newErr = new err.constructor(
+				`Patch #${index + 1} failed: ${err.message}`
+			);
+			newErr.stack = err.stack;
+			throw newErr;
+		}
+	} );
+
+	//console.log('warn', doc.);
 	return doc.toString( );
 }
 
