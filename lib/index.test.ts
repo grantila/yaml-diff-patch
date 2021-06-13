@@ -28,16 +28,207 @@ const yamlTrim = ( yaml: string ) =>
 
 describe( "yaml-patch", ( ) =>
 {
-	for ( const file of fixtureFiles )
+	describe( "fixtures", ( ) =>
 	{
-		const name = path.basename( file, path.extname( file ) );
-		it( name, async ( ) =>
+		for ( const file of fixtureFiles )
 		{
-			const { before, after, operations } = await readFixture( name );
+			const name = path.basename( file, path.extname( file ) );
+			it( name, async ( ) =>
+			{
+				const { before, after, operations } =
+					await readFixture( name );
 
-			const result = yamlPatch( before, operations );
+				const result = yamlPatch( before, operations );
 
-			expect( yamlTrim( result ) ).toEqual( yamlTrim( after ) );
+				expect( yamlTrim( result ) ).toEqual( yamlTrim( after ) );
+			} );
+		}
+	} );
+
+	describe( "various", ( ) =>
+	{
+		it( "add scalar (null)", ( ) =>
+		{
+			const res = yamlPatch(
+				`a: null`,
+				[
+					{
+						op: 'add',
+						path: '/b',
+						value: null,
+					}
+				]
+			);
+
+			expect( res ).toBe( `a: null\nb: null\n` );
 		} );
-	}
+
+		it( "add scalar (number)", ( ) =>
+		{
+			const res = yamlPatch(
+				`a: null`,
+				[
+					{
+						op: 'add',
+						path: '/b',
+						value: 42,
+					}
+				]
+			);
+
+			expect( res ).toBe( `a: null\nb: 42\n` );
+		} );
+
+		it( "add object", ( ) =>
+		{
+			const res = yamlPatch(
+				`a: null`,
+				[
+					{
+						op: 'add',
+						path: '/b',
+						value: { foo: 'bar' },
+					}
+				]
+			);
+
+			expect( res ).toBe( `a: null\nb:\n  foo: bar\n` );
+		} );
+
+		it( "add array", ( ) =>
+		{
+			const res = yamlPatch(
+				`a: null`,
+				[
+					{
+						op: 'add',
+						path: '/b',
+						value: [ 17, 42 ],
+					}
+				]
+			);
+
+			expect( res ).toBe( `a: null\nb:\n  - 17\n  - 42\n` );
+		} );
+
+		it( "add complex", ( ) =>
+		{
+			const res = yamlPatch(
+				`a: null`,
+				[
+					{
+						op: 'add',
+						path: '/b',
+						value: [
+							{ foo: [ 17, { fourtytwo: 42 } ] },
+							314,
+							'foo',
+						],
+					}
+				]
+			);
+
+			expect( res ).toMatchSnapshot( );
+		} );
+	} );
+
+	describe( "errors", ( ) =>
+	{
+		it( "reference non-existing path", ( ) =>
+		{
+			const thrower = ( ) => yamlPatch(
+				`a: b`,
+				[
+					{
+						op: 'add',
+						path: '/foo/bar',
+						value: 'baz',
+					},
+				],
+			);
+
+			expect( thrower ).toThrowError( /node at/ );
+		} );
+
+		it( "reference inside null", ( ) =>
+		{
+			const thrower = ( ) => yamlPatch(
+				`foo: null`,
+				[
+					{
+						op: 'add',
+						path: '/foo/bar',
+						value: 'baz',
+					},
+				],
+			);
+
+			expect( thrower ).toThrowError( /node at/ );
+		} );
+
+		it( "add invalid type", ( ) =>
+		{
+			const thrower = ( ) => yamlPatch(
+				`a: null`,
+				[
+					{
+						op: 'add',
+						path: '/b',
+						value: [
+							42,
+							( ) => { }, // This is invalid
+						],
+					}
+				]
+			);
+
+			expect( thrower ).toThrowError( /Invalid type: function/ );
+		} );
+
+		it( "invalid array indexing (negative)", ( ) =>
+		{
+			const thrower = ( ) => yamlPatch(
+				`a: [ 42 ]`,
+				[
+					{
+						op: 'remove',
+						path: '/a/-1',
+					}
+				]
+			);
+
+			expect( thrower ).toThrowError( RangeError );
+			expect( thrower ).toThrowError( /Can't remove index/ );
+		} );
+
+		it( "invalid array indexing (NaN)", ( ) =>
+		{
+			const thrower = ( ) => yamlPatch(
+				`a: [ 42 ]`,
+				[
+					{
+						op: 'remove',
+						path: '/a/foo',
+					}
+				]
+			);
+
+			expect( thrower ).toThrowError( /Patch #1 failed.*Can't remove/ );
+		} );
+
+		it( "invalid array indexing (out of bounds)", ( ) =>
+		{
+			const thrower = ( ) => yamlPatch(
+				`a: [ 42 ]`,
+				[
+					{
+						op: 'remove',
+						path: '/a/1',
+					}
+				]
+			);
+
+			expect( thrower ).toThrowError( /Patch #1 failed.*Can't remove/ );
+		} );
+	} );
 } );

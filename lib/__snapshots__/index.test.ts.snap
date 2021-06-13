@@ -1,0 +1,12 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`yaml-patch various add complex 1`] = `
+"a: null
+b:
+  - foo:
+      - 17
+      - fourtytwo: 42
+  - 314
+  - foo
+"
+`;
