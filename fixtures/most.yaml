@@ -1,0 +1,68 @@
+# this is something
+header:
+  val:
+    - { key: "Authorization", value: "Something" }
+    - "Content-Type: yada"
+
+objectish:
+  keep: this
+  remove: this one
+  replacethis: with one
+
+arrayish:
+  - keep: this
+  - remove: this
+  - replace: with one
+
+# this is foo
+foo:
+  bar: baz # baz is baz
+
+---
+
+patch:
+  - op: add
+    path: /foo/bee
+    value: beez
+  - op: add
+    path: /header/val/-
+    value: "Cache: no-cache"
+  - op: add
+    path: /header/allowMultiple
+    value: true
+  - op: add
+    path: /header/val/0/value
+    value: Something else
+  - op: remove
+    path: /objectish/remove
+  - op: replace
+    path: /objectish/replacethis
+    value: with two
+  - op: replace
+    path: /arrayish/2/replace
+    value: with two
+  - op: remove
+    path: /arrayish/1
+
+---
+
+# this is something
+header:
+  val:
+    - { key: "Authorization", value: Something else }
+    - "Content-Type: yada"
+    - "Cache: no-cache"
+  allowMultiple: true
+
+objectish:
+  keep: this
+  replacethis: with two
+
+arrayish:
+  - keep: this
+  - replace: with two
+
+# this is foo
+foo:
+  bar: baz # baz is baz
+  bee: beez

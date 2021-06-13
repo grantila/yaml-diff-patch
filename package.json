@@ -1,13 +1,13 @@
 {
-  "name": "yaml-patch",
+  "name": "yaml-diff-patch",
   "version": "0.0.0-development",
   "description": "Apply a JSON diff/patch to YAML while preserving whitespace, comments and overall structure",
   "author": "Gustaf Räntilä",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/grantila/yaml-patch/issues"
+    "url": "https://github.com/grantila/yaml-diff-patch/issues"
   },
-  "homepage": "https://github.com/grantila/yaml-patch#readme",
+  "homepage": "https://github.com/grantila/yaml-diff-patch#readme",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "directories": {},
@@ -29,7 +29,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/grantila/yaml-patch"
+    "url": "https://github.com/grantila/yaml-diff-patch"
   },
   "keywords": [
     "yaml",
@@ -40,6 +40,7 @@
   ],
   "devDependencies": {
     "@types/jest": "^26.0.23",
+    "commitizen": "^4.2.4",
     "jest": "^27.0.4",
     "rimraf": "^3.0.2",
     "ts-jest": "^27.0.2",
@@ -54,5 +55,25 @@
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
     }
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "testMatch": [
+      "<rootDir>/lib/**/*.test.ts"
+    ],
+    "collectCoverageFrom": [
+      "<rootDir>/lib/**"
+    ],
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
+      "/__snapshots__/",
+      "/bin/"
+    ],
+    "coverageReporters": [
+      "lcov",
+      "text",
+      "html"
+    ]
   }
 }

@@ -1,0 +1,46 @@
+sourceObject:
+  keep1: this
+  copyThis1: { foo: bar }
+  moveThis1: { foo: baz }
+  keep2: and this
+  copyThis2: 17 # because reasons
+  moveThis2: 42 # keep this comment
+  keep3: and also this
+
+targetArray:
+  - keep: this # of course
+
+---
+
+patch:
+  - op: move
+    from: /sourceObject/moveThis1
+    path: /targetArray/-
+  - op: move
+    from: /sourceObject/moveThis2
+    path: /targetArray/-
+  - op: copy
+    from: /sourceObject/copyThis1
+    path: /targetArray/-
+  - op: copy
+    from: /sourceObject/copyThis2
+    path: /targetArray/-
+  - op: add
+    path: /targetArray/3/fee
+    value: bee
+
+---
+
+sourceObject:
+  keep1: this
+  copyThis1: { foo: bar }
+  keep2: and this
+  copyThis2: 17 # because reasons
+  keep3: and also this
+
+targetArray:
+  - keep: this # of course
+  - { foo: baz }
+  - 42 # keep this comment
+  - { foo: bar, fee: bee }
+  - 17 # because reasons

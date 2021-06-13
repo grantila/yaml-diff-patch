@@ -1,0 +1,14 @@
+# this is foo
+foo:
+  # this is bar
+  bar: baz
+---
+patch:
+  - op: replace
+    path: /foo/bar
+    value: bak
+---
+# this is foo
+foo:
+  # this is bar
+  bar: bak
