@@ -1,0 +1,58 @@
+{
+  "name": "yaml-patch",
+  "version": "0.0.0-development",
+  "description": "Apply a JSON diff/patch to YAML while preserving whitespace, comments and overall structure",
+  "author": "Gustaf Räntilä",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/grantila/yaml-patch/issues"
+  },
+  "homepage": "https://github.com/grantila/yaml-patch#readme",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "directories": {},
+  "engines": {
+    "node": ">=12"
+  },
+  "bin": {
+    "yaml-patch": "dist/bin/yaml-patch.js",
+    "yaml-diff-patch": "dist/bin/yaml-patch.js",
+    "yaml-overwrite": "dist/bin/yaml-patch.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rimraf dist && tsc -p tsconfig.prod.json",
+    "test": "jest",
+    "cz": "git-cz"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/grantila/yaml-patch"
+  },
+  "keywords": [
+    "yaml",
+    "diff",
+    "patch",
+    "json",
+    "rfc6902"
+  ],
+  "devDependencies": {
+    "@types/jest": "^26.0.23",
+    "jest": "^27.0.4",
+    "rimraf": "^3.0.2",
+    "ts-jest": "^27.0.2",
+    "typescript": "^4.3.2"
+  },
+  "dependencies": {
+    "oppa": "^0.4.0",
+    "rfc6902": "^4.0.2",
+    "yaml": "^1.10.2"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  }
+}
