@@ -24,13 +24,13 @@ This package exports three functions: `yamlPatch`, `yamlDiffPatch` and `yamlOver
 function yamlPatch( yaml: string, rfc6902: Array< Operation > ): string;
 ```
 
-This function applies RFC6902 *"JSON Patch"* operations on a yaml while trying to preserve whitespace, comments and structure for a minimal change.
+This function applies `<rfc6902>` *"JSON Patch"* operations on a `<yaml>` while trying to preserve whitespace, comments and structure for a minimal change.
 
-Returns the new yaml.
+Returns the patched YAML.
 
 You can use the [`rfc6902`][rfc6902-npm-url] package do create the patch object, or use `yamlDiffPatch` below.
 
-> If the differences are too big, patching may fail (just like regular source code diff/patch operations). It's therefore recommended to - rather than re-using a JSON Patch for multiple different yamls - create the JSON Patch from each source yaml, transforming it as necessary and then apply that patch, whenever possible. That should never fail.
+> If the differences are too big, patching may fail (just like regular source code diff/patch operations). It's therefore recommended to - rather than re-using a JSON Patch for multiple different YAMLs - create the JSON Patch from each source YAML, transforming it as necessary and then apply that patch, whenever possible. That should never fail.
 
 
 ## yamlDiffPatch
@@ -39,7 +39,9 @@ You can use the [`rfc6902`][rfc6902-npm-url] package do create the patch object,
 function yamlDiffPatch( yaml: string, oldJson: any, newJson: any ): string;
 ```
 
-Uses two JSON's and makes a diff between them, then applies this as a patch to the yaml.
+Uses two JSON's (`<oldJson>` and `<newJson>`) and makes a diff between them, then applies this as a patch to the `<yaml>`.
+
+Returns the patched YAML.
 
 This is the same as `yamlPatch( yaml, makeJsonPatch( oldJson, newJson ) );` where `makeJsonPatch` would create an RFC6902 patch object.
 
@@ -50,9 +52,11 @@ This is the same as `yamlPatch( yaml, makeJsonPatch( oldJson, newJson ) );` wher
 function yamlOverwrite( yaml: string, newJson: any ): string;
 ```
 
-Uses the source yaml as the source object and diffs that against `newJson`, then applies this diff as a patch to the yaml. This will overwrite the fields that are different, yet while maintaining the structure of the source yaml.
+Uses the source `<yaml>` as the source object and diffs that against `<newJson>`, then applies this diff as a patch to the `<yaml>`. This will overwrite the fields that are different, while maintaining the structure of the source YAML.
 
-This is the same as `yamlDiffPatch( yaml, yamlToJson( yaml ), newJson );` where `yamlToJson` would parse the yaml into JSON.
+Returns the patched YAML.
+
+This is the same as `yamlDiffPatch( yaml, yamlToJson( yaml ), newJson );` where `yamlToJson` would parse YAML into JSON.
 
 
 # Executables
