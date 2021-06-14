@@ -90,8 +90,7 @@ function applySinglePatch( root: NodeType, operation: Operation )
 					`Can't ${operation.op} ${operation.path} ` +
 					`since it doesn't already exist`
 				);
-			parent.delete( last );
-			parent.add( new Pair( last, toAstValue( operation.value ) ) );
+			parent.set( last, toAstValue( operation.value ) );
 		}
 		else
 		{

@@ -8,6 +8,7 @@ objectish:
   keep: this
   remove: this one
   replacethis: with one
+  keep2: this too
 
 arrayish:
   - keep: this
@@ -57,6 +58,7 @@ header:
 objectish:
   keep: this
   replacethis: with two
+  keep2: this too
 
 arrayish:
   - keep: this
