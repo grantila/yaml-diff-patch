@@ -130,6 +130,22 @@ describe( "yaml-patch", ( ) =>
 
 			expect( res ).toMatchSnapshot( );
 		} );
+
+		it( "add string with slash in key", ( ) =>
+		{
+			const res = yamlPatch(
+				`a: String a`,
+				[
+					{
+						op: 'add',
+						path: '/b~1b',
+						value: 'String b/b',
+					}
+				]
+			);
+
+			expect( res ).toBe( `a: String a\nb/b: String b/b\n` );
+		} );
 	} );
 
 	describe( "errors", ( ) =>

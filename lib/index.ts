@@ -1,4 +1,4 @@
-import { compare, Operation } from 'fast-json-patch'
+import { compare, Operation, unescapePathComponent } from 'fast-json-patch'
 import { parse, parseDocument } from 'yaml'
 import { Pair, YAMLMap, YAMLSeq } from 'yaml/types'
 
@@ -29,7 +29,7 @@ function traverse( root: NodeType, op: string, path: string ): ParsedPath
 		'/' +
 		segments.slice( 0, index === -1 ? undefined : index ).join( '/' );
 
-	const last = segments.pop( )!;
+	const last = unescapePathComponent( segments.pop( )! );
 
 	let parent = root as YAMLMap | YAMLSeq;
 
