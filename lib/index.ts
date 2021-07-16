@@ -19,6 +19,11 @@ interface ParsedPath
 	pathTo: ( index: number ) => string;
 }
 
+// same function as found in the rfc6902 package: https://github.com/chbrown/rfc6902/blob/master/pointer.ts
+function unescape(token: string): string {
+  return token.replace(/~1/g, '/').replace(/~0/g, '~')
+}
+
 function traverse( root: NodeType, op: string, path: string ): ParsedPath
 {
 	const segments = path.split( '/' ).slice( 1 );
@@ -29,7 +34,7 @@ function traverse( root: NodeType, op: string, path: string ): ParsedPath
 		'/' +
 		segments.slice( 0, index === -1 ? undefined : index ).join( '/' );
 
-	const last = segments.pop( )!;
+  const last = unescape(segments.pop( )!);
 
 	let parent = root as YAMLMap | YAMLSeq;
 
