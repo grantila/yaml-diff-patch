@@ -1,4 +1,4 @@
-import { createPatch, Operation } from 'rfc6902'
+import { compare, Operation } from 'fast-json-patch'
 import { parse, parseDocument } from 'yaml'
 import { Pair, YAMLMap, YAMLSeq } from 'yaml/types'
 
@@ -219,7 +219,7 @@ export function yamlPatch( yaml: string, rfc6902: Array< Operation > ): string
 		{
 			applySinglePatch( doc.contents, operation );
 		}
-		catch ( err )
+		catch ( err: any )
 		{
 			const newErr = new err.constructor(
 				`Patch #${index + 1} failed: ${err.message}`
@@ -229,14 +229,13 @@ export function yamlPatch( yaml: string, rfc6902: Array< Operation > ): string
 		}
 	} );
 
-	//console.log('warn', doc.);
 	return doc.toString( );
 }
 
 export function yamlDiffPatch( yaml: string, oldJson: any, newJson: any )
 : string
 {
-	return yamlPatch( yaml, createPatch( oldJson, newJson ) );
+	return yamlPatch( yaml, compare( oldJson, newJson ) );
 }
 
 export function yamlOverwrite( yaml: string, newJson: any ): string
