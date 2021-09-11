@@ -1,7 +1,6 @@
 import { compare, Operation, unescapePathComponent } from 'fast-json-patch'
-import { parse, parseDocument } from 'yaml'
-import { Pair, YAMLMap, YAMLSeq } from 'yaml/types'
-import { Type } from 'yaml/util'
+import { parse, ParsedNode, parseDocument, Scalar } from 'yaml'
+import { Pair, YAMLMap, YAMLSeq } from 'yaml'
 
 import {
 	NodeType,
@@ -12,15 +11,17 @@ import {
 	parseSafeIndex,
 } from './helpers'
 
+type YAMLCollection = YAMLMap | YAMLSeq;
+
 interface ParsedPath
 {
 	segments: Array< string >;
 	last: string;
-	parent: YAMLMap | YAMLSeq;
+	parent: YAMLCollection;
 	pathTo: ( index: number ) => string;
 }
 
-function traverse( root: NodeType, op: string, path: string ): ParsedPath
+function traverse( root: ParsedNode, op: string, path: string ): ParsedPath
 {
 	const segments = path.split( '/' ).slice( 1 );
 	if ( segments.length === 0 )
@@ -32,14 +33,14 @@ function traverse( root: NodeType, op: string, path: string ): ParsedPath
 
 	const last = unescapePathComponent( segments.pop( )! );
 
-	let parent = root as YAMLMap | YAMLSeq;
+	let parent = root as YAMLCollection;
 
 	segments.forEach( ( segment, index ) =>
 	{
 		if ( isYamlSeq( parent ) )
-			parent = parent.get( parseInt( segment ), true );
+			parent = parent.get( parseInt( segment ), true ) as YAMLCollection;
 		else
-			parent = parent.get( segment, true );
+			parent = parent.get( segment, true ) as YAMLCollection;
 
 		if ( !isYamlMap( parent ) && !isYamlSeq( parent ) )
 		{
@@ -53,7 +54,7 @@ function traverse( root: NodeType, op: string, path: string ): ParsedPath
 	return { segments, last, parent: parent, pathTo };
 }
 
-function applySinglePatch( root: NodeType, operation: Operation )
+function applySinglePatch( root: ParsedNode, operation: Operation )
 {
 	const { last, parent, pathTo } =
 		traverse( root, operation.op, operation.path );
@@ -129,20 +130,43 @@ function applySinglePatch( root: NodeType, operation: Operation )
 		const { last: lastFrom, parent: parentFrom, pathTo: pathToFrom } =
 			traverse( root, operation.op, operation.from );
 
-		const sourceNode = ( ( ): NodeType =>
+		type SourceType = { node: NodeType; commentBefore?: string | null };
+		const sourceNode = ( ( ): SourceType =>
 		{
 			if ( isYamlMap( parentFrom ) )
 			{
 				// Object
-				const node = parentFrom.get( lastFrom, true );
-				if ( lastFrom === undefined )
+				const node =
+					parentFrom.get( lastFrom, true ) as NodeType ?? null;
+				if ( lastFrom === undefined || node === null )
 					throw ReferenceError(
-						`Can't ${operation.op} index ${last} to array at ` +
+						`Can't ${operation.op} key ${last} to object at ` +
 						pathToFrom( -1 )
 					);
+
+				const indexOfChild =
+					parentFrom.items.findIndex( item => item.value === node );
+				let { commentBefore } =
+					parentFrom.items[ indexOfChild ].key as Scalar ?? { };
+
 				if ( operation.op === 'move' )
 					parentFrom.delete( lastFrom );
-				return node;
+
+				if ( indexOfChild === 0 )
+				{
+					// Copy (or move) commentBefore from parent object,
+					// since this is the first property and the comment is on
+					// the parent object in the CST.
+					commentBefore =
+						commentBefore == null
+						? parentFrom.commentBefore
+						: parentFrom.commentBefore + '\n' + commentBefore;
+
+					if ( operation.op === 'move' )
+						parentFrom.commentBefore = null;
+				}
+
+				return { node, commentBefore };
 			}
 			else if ( isYamlSeq( parentFrom ) )
 			{
@@ -155,10 +179,10 @@ function applySinglePatch( root: NodeType, operation: Operation )
 						`to array at ${pathToFrom( -1 )}`
 					);
 
-				const node = parentFrom.get( index, true );
+				const node = parentFrom.get( index, true ) as NodeType ?? null;
 				if ( operation.op === 'move' )
 					parentFrom.delete( index );
-				return node;
+				return { node };
 			}
 			else
 				throw new ReferenceError(
@@ -166,14 +190,22 @@ function applySinglePatch( root: NodeType, operation: Operation )
 				);
 		} )( );
 
-		const node =
-			operation.op === 'move' ? sourceNode : cloneNode( sourceNode );
+		const { node, commentBefore } =
+			operation.op === 'move'
+			? sourceNode
+			: { node: cloneNode( sourceNode.node ) } as SourceType;
 
 		if ( isYamlMap( parent ) )
 		{
 			// Object
 			parent.delete( last );
-			parent.set( last, node );
+
+			// Add item with custom pair where the key is a scalar, hence can
+			// have a commentBefore
+			const lastScalar = new Scalar( last );
+			lastScalar.commentBefore = commentBefore;
+			const pair = new Pair( lastScalar, node );
+			parent.add( pair );
 		}
 		else
 		{
@@ -209,23 +241,25 @@ function applySinglePatch( root: NodeType, operation: Operation )
 export function yamlPatch( yaml: string, rfc6902: Array< Operation > ): string
 {
 	const doc = parseDocument( yaml, {
-		keepCstNodes: true,
+		keepSourceTokens: true,
+		strict: false,
 		prettyErrors: true,
-		simpleKeys: true,
 	} );
 
 	// An empty yaml doc produces a null document. Replace with an empty map.
 	if ( !doc.contents )
 	{
-		doc.contents = new YAMLMap( );
-		doc.contents.type = Type.MAP;
+		const root = new YAMLMap( ) as YAMLMap.Parsed;
+		root.range = [ 0, 0, 0 ];
+		doc.contents = root;
+		doc.contents.flow = false;
 	}
 
 	rfc6902.forEach( ( operation, index ) =>
 	{
 		try
 		{
-			applySinglePatch( doc.contents, operation );
+			applySinglePatch( doc.contents!, operation );
 		}
 		catch ( err: any )
 		{

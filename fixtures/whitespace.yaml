@@ -1,0 +1,35 @@
+# foo description
+foo:
+  # the pie
+  pie: chart # this is pie
+  # some text
+
+  # some more text
+  bar: baz # this is baz
+
+target:
+  x: 1
+
+---
+
+patch:
+  - op: move
+    from: /foo/bar
+    path: /target/bar
+  - op: move
+    from: /foo/pie
+    path: /target/pie
+
+---
+
+# foo description
+foo: {}
+
+target:
+  x: 1
+  # some text
+
+  # some more text
+  bar: baz # this is baz
+  # the pie
+  pie: chart # this is pie

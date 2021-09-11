@@ -1,18 +1,25 @@
-import { Pair, Scalar, YAMLMap, YAMLSeq } from 'yaml/types'
+import {
+	isMap,
+	isSeq,
+	Pair,
+	isScalar as isYamlScalar,
+	Scalar,
+	YAMLMap,
+	YAMLSeq,
+} from 'yaml'
+import { NodeBase } from 'yaml/dist/nodes/Node'
 
 
 export type NodeType = Scalar | YAMLMap | YAMLSeq | null;
 
-export function isYamlMap( value: NodeType )
-: value is YAMLMap
+export function isYamlMap( value: NodeType ): value is YAMLMap
 {
-	return value?.type === 'MAP' || value?.type === 'FLOW_MAP';
+	return !value ? false : isMap( value );
 }
 
-export function isYamlSeq( value: NodeType )
-: value is YAMLSeq
+export function isYamlSeq( value: NodeType ): value is YAMLSeq
 {
-	return value?.type === 'SEQ' || value?.type === 'FLOW_SEQ';
+	return !value ? false : isSeq( value );
 }
 
 export function isScalar( value: any )
@@ -51,16 +58,16 @@ export function toAstValue( value: any )
 		throw new Error( `Invalid type: ${ typeof value }` );
 }
 
-export function copyProperties(
-	target: NonNullable< NodeType | Pair >,
-	source: NonNullable< NodeType | Pair >,
+export function copyProperties< T extends NodeBase >(
+	target: NonNullable< T >,
+	source: NonNullable< T >,
 )
 {
 	target.comment = source.comment;
 	target.commentBefore = source.commentBefore;
 	target.spaceBefore = source.spaceBefore;
 	target.tag = source.tag;
-	target.type = source.type;
+	// target.type = source.type;
 }
 
 export function cloneNode< T extends NodeType >( node: T ): T
@@ -68,21 +75,21 @@ export function cloneNode< T extends NodeType >( node: T ): T
 	if ( !node )
 		return node;
 
-	if ( node.type === 'PLAIN' )
+	if ( isYamlScalar( node ) )
 	{
-		const ret = new Scalar( node.value );
-		ret.format = node.format;
+		const ret = node.clone( ) as typeof node;
 		copyProperties( ret, node );
-		return ret as T;
+		return ret;
 	}
 	else if ( isYamlMap( node ) )
 	{
 		const ret = new YAMLMap( );
+		ret.flow = node.flow;
 		copyProperties( ret, node );
 		node.items.map( pair =>
 		{
-			const newPair = new Pair( pair.key, cloneNode( pair.value ) );
-			copyProperties( newPair, pair );
+			const newPair =
+				new Pair( pair.key, cloneNode( pair.value as any ) );
 			ret.add( newPair );
 		} );
 		return ret as T;
@@ -90,15 +97,16 @@ export function cloneNode< T extends NodeType >( node: T ): T
 	else if ( isYamlSeq( node ) )
 	{
 		const ret = new YAMLSeq( );
+		ret.flow = node.flow;
 		copyProperties( ret, node );
 		node.items.forEach( elem =>
 		{
-			ret.add( cloneNode( elem ) );
+			ret.add( cloneNode( elem as any ) );
 		} );
 		return ret as T;
 	}
 	else
-		throw new Error( `Cannot clone unknown type "${node.type}"` );
+		throw new Error( `Cannot clone unknown type "${(node as any).type}"` );
 }
 
 // Gets the index as a number (and <length> if index is '-')
