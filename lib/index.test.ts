@@ -47,6 +47,22 @@ describe( "yaml-patch", ( ) =>
 
 	describe( "various", ( ) =>
 	{
+		it( "add scalar to empty document", ( ) =>
+		{
+			const res = yamlPatch(
+				"",
+				[
+					{
+						op: 'add',
+						path: '/a',
+						value: 1,
+					}
+				]
+			);
+
+			expect( res ).toBe( `a: 1\n` );
+		} );
+
 		it( "add scalar (null)", ( ) =>
 		{
 			const res = yamlPatch(

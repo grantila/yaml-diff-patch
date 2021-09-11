@@ -1,6 +1,7 @@
 import { compare, Operation, unescapePathComponent } from 'fast-json-patch'
 import { parse, parseDocument } from 'yaml'
 import { Pair, YAMLMap, YAMLSeq } from 'yaml/types'
+import { Type } from 'yaml/util'
 
 import {
 	NodeType,
@@ -212,6 +213,13 @@ export function yamlPatch( yaml: string, rfc6902: Array< Operation > ): string
 		prettyErrors: true,
 		simpleKeys: true,
 	} );
+
+	// An empty yaml doc produces a null document. Replace with an empty map.
+	if ( !doc.contents )
+	{
+		doc.contents = new YAMLMap( );
+		doc.contents.type = Type.MAP;
+	}
 
 	rfc6902.forEach( ( operation, index ) =>
 	{
