@@ -14,9 +14,15 @@ YAML isn't however as easy to work with programmatically as JSON.
 This package offers an API and standalone executables to allow for modifying a YAML as JSON, and then applying that JSON diff as a patch on the YAML, preserving whitespace, comments and overall structure. This also makes the final YAML diff minimal.
 
 
+# Versions
+
+ * Version 2.0 requires Node 14
+
+
 # API
 
 This package exports three functions: `yamlPatch`, `yamlDiffPatch` and `yamlOverwrite`.
+
 
 ## yamlPatch
 
