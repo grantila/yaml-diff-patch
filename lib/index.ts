@@ -2,6 +2,18 @@ import { compare, Operation, unescapePathComponent } from 'fast-json-patch'
 import { parse, ParsedNode, parseDocument, Scalar } from 'yaml'
 import { Pair, YAMLMap, YAMLSeq } from 'yaml'
 
+export type {
+	AddOperation,
+	BaseOperation,
+	CopyOperation,
+	GetOperation,
+	MoveOperation,
+	RemoveOperation,
+	ReplaceOperation,
+	TestOperation,
+	Operation,
+} from 'fast-json-patch'
+
 import {
 	NodeType,
 	isYamlMap,
@@ -38,9 +50,11 @@ function traverse( root: ParsedNode, op: string, path: string ): ParsedPath
 	segments.forEach( ( segment, index ) =>
 	{
 		if ( isYamlSeq( parent ) )
-			parent = parent.get( parseInt( segment ), true ) as YAMLCollection;
+			parent = parent.get( parseInt( segment ), true ) as
+				unknown as YAMLCollection;
 		else
-			parent = parent.get( segment, true ) as YAMLCollection;
+			parent = parent.get( segment, true ) as
+				unknown as YAMLCollection;
 
 		if ( !isYamlMap( parent ) && !isYamlSeq( parent ) )
 		{
