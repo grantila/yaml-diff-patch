@@ -420,7 +420,7 @@ describe( "yaml-patch", ( ) =>
 			expect( result ).toBe( `a: ${line}\n` );
 		} );
 
-		it.skip( "keep long lines of array contenet", ( ) =>
+		it.skip( "keep long lines of array content", ( ) =>
 		{
 			const line = [
 				"This is an array element.", "This is an array element.",
@@ -437,6 +437,28 @@ describe( "yaml-patch", ( ) =>
 			);
 
 			expect( result ).toBe( `a: [ ${line} ]\n` );
+		} );
+	} );
+
+	describe( "options", ( ) =>
+	{
+		it.skip( "keep long lines of text if lineWidth is set to 0", ( ) =>
+		{
+			const line = [
+				"This is a long line of txt. ", "This is a long line of txt. ",
+				"This is a long line of txt. ", "This is a long line of txt. ",
+				"This is markdown [Link to some long text somewhere else]",
+				"(https://www.verylonglines.foo/yadayadayadayada/very/long)",
+				" seems this line never ends",
+			].join( '' );
+
+			const result = yamlPatch(
+				`a: ${line}\n`,
+				[ ],
+				{ lineWidth: 0 }
+			);
+
+			expect( result ).toBe( `a: ${line}\n` );
 		} );
 	} );
 } );
