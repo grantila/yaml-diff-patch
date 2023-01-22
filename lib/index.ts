@@ -1,5 +1,5 @@
 import { compare, Operation, unescapePathComponent } from 'fast-json-patch'
-import { parse, ParsedNode, parseDocument, Scalar } from 'yaml'
+import { parse, ParsedNode, parseDocument, Scalar, ToStringOptions } from 'yaml'
 import { Pair, YAMLMap, YAMLSeq } from 'yaml'
 
 export type {
@@ -13,6 +13,8 @@ export type {
 	TestOperation,
 	Operation,
 } from 'fast-json-patch'
+
+export type { ToStringOptions };
 
 import {
 	NodeType,
@@ -252,7 +254,7 @@ function applySinglePatch( root: ParsedNode, operation: Operation )
 	}
 }
 
-export function yamlPatch( yaml: string, rfc6902: Array< Operation > ): string
+export function yamlPatch( yaml: string, rfc6902: Array< Operation >, options?: ToStringOptions ): string
 {
 	const doc = parseDocument( yaml, {
 		keepSourceTokens: true,
@@ -285,17 +287,17 @@ export function yamlPatch( yaml: string, rfc6902: Array< Operation > ): string
 		}
 	} );
 
-	return doc.toString( );
+	return doc.toString( options );
 }
 
-export function yamlDiffPatch( yaml: string, oldJson: any, newJson: any )
+export function yamlDiffPatch( yaml: string, oldJson: any, newJson: any, options?: ToStringOptions )
 : string
 {
-	return yamlPatch( yaml, compare( oldJson, newJson ) );
+	return yamlPatch( yaml, compare( oldJson, newJson ), options );
 }
 
-export function yamlOverwrite( yaml: string, newJson: any ): string
+export function yamlOverwrite( yaml: string, newJson: any, options?: ToStringOptions ): string
 {
 	const old = parse( yaml );
-	return yamlDiffPatch( yaml, old, newJson );
+	return yamlDiffPatch( yaml, old, newJson, options );
 }

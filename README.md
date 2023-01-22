@@ -27,7 +27,7 @@ This package exports three functions: `yamlPatch`, `yamlDiffPatch` and `yamlOver
 ## yamlPatch
 
 ```ts
-function yamlPatch( yaml: string, rfc6902: Array< Operation > ): string;
+function yamlPatch( yaml: string, rfc6902: Array< Operation >, options?: ToStringOptions ): string;
 ```
 
 This function applies `<rfc6902>` *"JSON Patch"* operations on a `<yaml>` while trying to preserve whitespace, comments and structure for a minimal change.
@@ -42,7 +42,7 @@ You can use the [`rfc6902`][rfc6902-npm-url] package do create the patch object,
 ## yamlDiffPatch
 
 ```ts
-function yamlDiffPatch( yaml: string, oldJson: any, newJson: any ): string;
+function yamlDiffPatch( yaml: string, oldJson: any, newJson: any, options?: ToStringOptions ): string;
 ```
 
 Uses two JSON's (`<oldJson>` and `<newJson>`) and makes a diff between them, then applies this as a patch to the `<yaml>`.
@@ -55,7 +55,7 @@ This is the same as `yamlPatch( yaml, makeJsonPatch( oldJson, newJson ) );` wher
 ## yamlOverwrite
 
 ```ts
-function yamlOverwrite( yaml: string, newJson: any ): string;
+function yamlOverwrite( yaml: string, newJson: any, options?: ToStringOptions ): string;
 ```
 
 Uses the source `<yaml>` as the source object and diffs that against `<newJson>`, then applies this diff as a patch to the `<yaml>`. This will overwrite the fields that are different, while maintaining the structure of the source YAML.
