@@ -27,7 +27,7 @@ const argOutput = {
 
 async function writeOut( result: string, output: string )
 {
-	if ( output === '' )
+	if ( output === '-' )
 		process.stdout.write( result );
 	else
 		await promises.writeFile( output, result );
