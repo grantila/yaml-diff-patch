@@ -53,7 +53,7 @@ function traverse( root: ParsedNode, op: string, path: string ): ParsedPath
 			parent = parent.get( parseInt( segment ), true ) as
 				unknown as YAMLCollection;
 		else
-			parent = parent.get( segment, true ) as
+			parent = parent.get( unescapePathComponent( segment ), true ) as
 				unknown as YAMLCollection;
 
 		if ( !isYamlMap( parent ) && !isYamlSeq( parent ) )
