@@ -285,7 +285,7 @@ export function yamlPatch( yaml: string, rfc6902: Array< Operation > ): string
 		}
 	} );
 
-	return doc.toString( );
+	return doc.toString( { verifyAliasOrder: false } );
 }
 
 export function yamlDiffPatch( yaml: string, oldJson: any, newJson: any )
